@@ -67,14 +67,13 @@ import ConfigParser
 import logging
 import gzip
 import time
-import random
 import socket
 from cStringIO import StringIO
 
+msgpack = None
 try:
     import msgpack
 except ImportError:
-    msgpack = None
     warnings.warn("msgpack module not installed - messagepack encoding disabled")
 
 
@@ -111,7 +110,7 @@ class HTTPClient(object):
 
     block_size = 1024*8
 
-    def __init__(self, scheme, host, port=None, auto_decode=True, retry=3):
+    def __init__(self, scheme, host, port=None, auto_decode=True, retry=6):
         """
         initialize a new http client.
         """
@@ -218,8 +217,9 @@ class HTTPClient(object):
 
                 return res_body
             except (socket.error, httplib.HTTPException) as e:
-                LOG.debug("Error %s, retrying %s more times" % (e, self.retry-retry))
-                time.sleep(random.random())
+                LOG.debug("Error %s, retrying %s more times in %s seconds",
+                          e, self.retry-retry, (2**retry)/10.0)
+                time.sleep((2**retry)/10.0)
                 self.reset()
                 continue
         else:
