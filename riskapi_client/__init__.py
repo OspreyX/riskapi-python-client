@@ -269,6 +269,7 @@ class Holding(object):
         return ("Holding(%(code)r, %(price)r, %(quantity)r, %(currency_exchange_value)r, "
                 "%(attributes)r, %(currency)r, %(price_factor)r)") % vars(self)
 
+
 class Portfolio(object):
     """RiskAPI portfolio"""
 
@@ -751,3 +752,7 @@ def connect(host=None, customer=None, username=None,
         scheme = "http"
 
     return RiskapiClient(host, customer, username, password, scheme, **kwargs)
+
+
+def connect_local(host="localhost:8000", customer="", username="", password="", secure=False, **kwargs):
+    return connect(host, customer, username, password, secure, **kwargs)
