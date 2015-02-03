@@ -5,7 +5,7 @@ CURRENT_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
 
 def version():
     version = open(os.path.join(CURRENT_DIRECTORY, "VERSION")).read()
-    return version + "-%s" % os.environ.get('BUILD', 'dev')
+    return version + "-%s" % os.environ.get('BUILD', 'dev0')
 
 setup(
     name="riskapi_client",
