@@ -731,6 +731,23 @@ class RiskapiClient(object):
             self._url("risk/attribution"), self._encode(params), self._headers)
         return data
 
+    def risk_attribution_decomposition(self, portfolio, benchmark, percentile, function,
+                                       selection_method, lookback_days=730, horizon=1,
+                                       frequency=1, scale_factor=1):
+        """
+        Portfolio risk attribution
+        """
+
+        params = dict(lookback_days=lookback_days, percentile=percentile,
+                      horizon=horizon, frequency=frequency,
+                      portfolio=portfolio.encode(), benchmark=benchmark.encode(),
+                      function=function, scale_factor=scale_factor,
+                      selection_method=selection_method)
+
+        data = self.webclient.post(
+            self._url("risk/attribution/decomposition"), self._encode(params), self._headers)
+        return data
+
 
 
 def connect(host=None, customer=None, username=None,
