@@ -716,7 +716,7 @@ class RiskapiClient(object):
         return self.webclient.get(self._url("system/dashboard"), headers=self._headers)
 
     def risk_attribution(self, portfolio, benchmark, percentile, function, selection_method,
-                         lookback_days=730, horizon=1, frequency=1, scale_factor=1):
+                         lookback_days=730, horizon=1, frequency=1, outstanding=None):
         """
         Portfolio risk attribution
         """
@@ -724,7 +724,7 @@ class RiskapiClient(object):
         params = dict(lookback_days=lookback_days, percentile=percentile,
                       horizon=horizon, frequency=frequency,
                       portfolio=portfolio.encode(), benchmark=benchmark.encode(),
-                      function=function, scale_factor=scale_factor,
+                      function=function, outstanding=outstanding,
                       selection_method=selection_method)
 
         data = self.webclient.post(
@@ -733,7 +733,7 @@ class RiskapiClient(object):
 
     def risk_attribution_decomposition(self, portfolio, benchmark, percentile, function,
                                        selection_method, lookback_days=730, horizon=1,
-                                       frequency=1, scale_factor=1):
+                                       frequency=1, outstanding=None):
         """
         Portfolio risk attribution
         """
@@ -741,7 +741,7 @@ class RiskapiClient(object):
         params = dict(lookback_days=lookback_days, percentile=percentile,
                       horizon=horizon, frequency=frequency,
                       portfolio=portfolio.encode(), benchmark=benchmark.encode(),
-                      function=function, scale_factor=scale_factor,
+                      function=function, outstanding=outstanding,
                       selection_method=selection_method)
 
         data = self.webclient.post(
