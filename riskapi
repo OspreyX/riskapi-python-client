@@ -1,0 +1,47 @@
+#!/usr/bin/env
+
+import sys
+
+import riskapi_client
+
+if __name__ == "__main__":
+    import argparse
+    import getpass
+    from IPython.terminal.embed import InteractiveShellEmbed
+
+    parser = argparse.ArgumentParser(
+        description="StatPro RiskAPI console",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--host", help="StatPro RiskAPI host")
+    parser.add_argument("--customer", help="Customer ID")
+    parser.add_argument("--username", help="Username")
+    parser.add_argument("--password", help="Password")
+    parser.add_argument("--insecure", help="Disable SSL", action="store_true", default=False)
+    parser.add_argument("--local", help="Connect to local installation", action="store_true", default=False)
+
+    args = parser.parse_args()
+
+    if args.local:
+        fun = riskapi_client.connect_local
+    else:
+        fun = riskapi_client.connect
+
+    host, customer, username, password, scheme = riskapi_client.get_params(
+        args.host, args.customer, args.username, args.password, not args.insecure)
+
+    print "Connecting to StatPro RiskAPI with %s..." % username
+
+    if password is None:
+        password = getpass.getpass("StatPro RiskAPI password for %s: " % username)
+
+    try:
+        conn = fun(args.host, args.customer, args.username, password, not args.insecure)
+    except Exception, e:
+        sys.exit("ERROR: %s" % e)
+
+    glob = {name: getattr(riskapi_client, name) for name in dir(riskapi_client) if not name.startswith('_')}
+    glob['conn'] = conn
+    glob.update({name: getattr(conn, name) for name in dir(conn) if not name.startswith('_')})
+
+    shell = InteractiveShellEmbed(banner1="Welcome to StatPro RiskAPI client")
+    shell("Try help(conn)", dict(), global_ns=glob)

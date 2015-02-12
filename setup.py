@@ -14,6 +14,7 @@ setup(
     zip_safe=False,
     dependency_links=[],
     package_data={},
+    scripts=["riskapi"],
     extras_require = {
         "msgpack": ["msgpack-python>=0.4"]
     }

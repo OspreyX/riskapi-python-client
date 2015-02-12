@@ -750,14 +750,8 @@ class RiskapiClient(object):
         return data
 
 
-
-def connect(host=None, customer=None, username=None,
-            password=None, secure=True, **kwargs):
-    """
-    connect to RiskAPI by taking configuration file into account
-    configuration parameters are read from ~/.riskapi.conf, section [client]
-    """
-
+def get_params(host=None, customer=None, username=None,
+               password=None, secure=True):
     cp = ConfigParser.RawConfigParser(allow_no_value=True)
     cp.read(os.path.expanduser("~/.riskapi.conf"))
 
@@ -784,8 +778,22 @@ def connect(host=None, customer=None, username=None,
     else:
         scheme = "http"
 
+    return host, customer, username, password, scheme
+
+
+def connect(host=None, customer=None, username=None,
+            password=None, secure=True, **kwargs):
+    """
+    connect to RiskAPI by taking configuration file into account
+    configuration parameters are read from ~/.riskapi.conf, section [client]
+    """
+
+    host, customer, username, password, scheme = get_params(
+        host, customer, username, password, secure)
+
     return RiskapiClient(host, customer, username, password, scheme, **kwargs)
 
 
 def connect_local(host="localhost:8000", customer="", username="", password="", secure=False, **kwargs):
     return connect(host, customer, username, password, secure, **kwargs)
+
