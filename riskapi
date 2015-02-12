@@ -21,23 +21,24 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    print "Connecting to StatPro RiskAPI"
+
     if args.local:
-        fun = riskapi_client.connect_local
+        try:
+            conn = riskapi_client.connect_local()
+        except Exception, e:
+            sys.exit("ERROR: %s" % e)
     else:
-        fun = riskapi_client.connect
+        host, customer, username, password, scheme = riskapi_client.get_params(
+            args.host, args.customer, args.username, args.password, not args.insecure)
 
-    host, customer, username, password, scheme = riskapi_client.get_params(
-        args.host, args.customer, args.username, args.password, not args.insecure)
+        if password is None:
+            password = getpass.getpass("StatPro RiskAPI password for %s: " % username)
 
-    print "Connecting to StatPro RiskAPI with %s..." % username
-
-    if password is None:
-        password = getpass.getpass("StatPro RiskAPI password for %s: " % username)
-
-    try:
-        conn = fun(args.host, args.customer, args.username, password, not args.insecure)
-    except Exception, e:
-        sys.exit("ERROR: %s" % e)
+        try:
+            conn = riskapi_client.connect(args.host, args.customer, args.username, password, not args.insecure)
+        except Exception, e:
+            sys.exit("ERROR: %s" % e)
 
     glob = {name: getattr(riskapi_client, name) for name in dir(riskapi_client) if not name.startswith('_')}
     glob['conn'] = conn
