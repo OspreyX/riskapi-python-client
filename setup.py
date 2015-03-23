@@ -16,6 +16,7 @@ setup(
     package_data={},
     scripts=["riskapi"],
     extras_require = {
-        "msgpack": ["msgpack-python>=0.4"]
+        "msgpack": ["msgpack-python>=0.4"],
+        "tests": ["nose>=1.3.4", "voluptuous==0.8.7"]
     }
 )
