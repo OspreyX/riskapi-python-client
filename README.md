@@ -24,6 +24,10 @@ If you want to run the test suite you will also need ``nose`` and ``voluptuous``
 
 `$ pip install nose==1.3.4 voluptuous==0.8.7`
 
+or just::
+
+`$ python setup.py test`
+
 
 Usage
 -----
