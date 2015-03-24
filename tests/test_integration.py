@@ -1,7 +1,8 @@
 import random
 
 import nose.tools as nt
-from voluptuous import Schema, Match, Optional, All, Range, Any, Invalid
+from voluptuous import (
+    Schema, Optional, All, Range, Any, Match, Datetime, ExactSequence)
 
 import riskapi_client
 
@@ -52,39 +53,9 @@ def setup():
         client.webclient.close()
 
 
-def Pair(t1, t2):
-    """
-    Validate an iterable of exactly two elements of the given types
-    """
-
-    def _check(v):
-        try:
-            if len(v) != 2:
-                raise Invalid("Not a couple")
-            v1 = v[0]
-            v2 = v[1]
-        except TypeError:
-            raise Invalid("Input value is not iterable")
-
-        if isinstance(t1, Schema):
-            t1(v1)
-        elif not isinstance(v1, t1):
-            raise Invalid("first value: expected %s, found %s" % (
-                t1.__name__, type(v1).__name__))
-
-        if isinstance(t2, Schema):
-            t2(v2)
-        elif not isinstance(v2, t2):
-            raise Invalid("second value: expected %s, found %s" % (
-                t2.__name__, type(v2).__name__))
-
-        return v
-
-    return _check
-
-
-IsoDateSchema = Schema(Match("^\d{4}-\d{2}-\d{2}$"))
-TimestampSchema = Schema(Match("^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}.\d+\+.*$"))
+IsoDateSchema = Datetime("%Y-%m-%d")
+# %z is not always supported, so we can't use Datetime.
+TimestampSchema = Schema(Match("^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(.\d+)?"))
 PositiveInteger = All(int, Range(min=1))
 NullableFloat = Any(float, None)
 
@@ -92,12 +63,12 @@ NullableFloat = Any(float, None)
 PortfolioInfoSchema = Schema({
     Optional('exposure'): float,
     Optional('size'): int,
-    Optional('full_nominal_exposure'): [Pair(float, unicode)],
+    Optional('full_nominal_exposure'): [ExactSequence([float, unicode])],
     Optional('covered_exposure'): float,
-    Optional('portfolio_cash_scenarios'): [Pair(IsoDateSchema, float)],
+    Optional('portfolio_cash_scenarios'): [ExactSequence([IsoDateSchema, float])],
     Optional('portfolio_quantities'): [float],
-    Optional('asset_scenarios'): {unicode: [Pair(IsoDateSchema, float)]}
-})
+    Optional('asset_scenarios'): {unicode: [ExactSequence([IsoDateSchema, float])]}
+}, required=True)
 
 
 DataInfoSchema = Schema({
@@ -108,28 +79,29 @@ DataInfoSchema = Schema({
     'stresstest_size': PositiveInteger,
     'timestamp': TimestampSchema,
     'liquidityrisk_size': PositiveInteger,
-})
+}, required=True)
 
 
-RiskSchema = Schema([{
-    'frequency': All(int, Range(min=1, max=20)),
-    'horizon': All(int, Range(min=1, max=20)),
-    'lookback_days': All(int, Range(min=100)),
-    'percentile': All(float, Range(min=0.5, max=0.999)),
-    Optional('average_potential_upside'): NullableFloat,
-    Optional('average_var'): NullableFloat,
-    Optional('diversification'): NullableFloat,
-    Optional('expected_loss'): NullableFloat,
-    Optional('expected_return'): NullableFloat,
-    Optional('expected_shortfall'): NullableFloat,
-    Optional('expected_upside'): NullableFloat,
-    Optional('potential_upside'): NullableFloat,
-    Optional('var'): NullableFloat,
-    Optional('volatility'): NullableFloat,
-}])
+RiskSchema = Schema([
+    Schema({
+        'frequency': All(int, Range(min=1, max=20)),
+        'horizon': All(int, Range(min=1, max=20)),
+        'lookback_days': All(int, Range(min=100)),
+        'percentile': All(float, Range(min=0.5, max=0.999)),
+        Optional('average_potential_upside'): NullableFloat,
+        Optional('average_var'): NullableFloat,
+        Optional('diversification'): NullableFloat,
+        Optional('expected_loss'): NullableFloat,
+        Optional('expected_return'): NullableFloat,
+        Optional('expected_shortfall'): NullableFloat,
+        Optional('expected_upside'): NullableFloat,
+        Optional('potential_upside'): NullableFloat,
+        Optional('var'): NullableFloat,
+        Optional('volatility'): NullableFloat,
+    }, required=True)])
 
 
-StressTestSchema = Schema([Pair(unicode, float)])
+StressTestSchema = Schema([ExactSequence([unicode, float])])
 
 
 LiquidityRiskComponentSchema = Schema({
@@ -140,11 +112,11 @@ LiquidityRiskComponentSchema = Schema({
         'pricer': float,
         'pct_owned': float,
         'global': float,
-    })
+    }, required=True)
 
 
 LiquidityRiskSchema = Schema([
-    Pair(unicode, LiquidityRiskComponentSchema)
+    ExactSequence([unicode, LiquidityRiskComponentSchema])
 ])
 
 
@@ -155,7 +127,7 @@ RiskDecompositionComponentSchema = Schema([
         Optional('marginal_risk'): NullableFloat,
         Optional('marginal_pct'): NullableFloat,
         'attributes': Schema([unicode])
-    })
+    }, required=True)
 ])
 
 
@@ -166,34 +138,34 @@ RiskDecompositionSchema = Schema({
     Optional('expected_shortfall'): RiskDecompositionComponentSchema,
     Optional('expected_upside'): RiskDecompositionComponentSchema,
     Optional('volatility'): RiskDecompositionComponentSchema,
-})
+}, required=True)
 
 
 MultiLevelRiskDecompositionSchema = Schema([
     Any(
-        {
+        Schema({
             Optional('exposure'): NullableFloat,
             Optional('var'): NullableFloat,
             Optional('potential_upside'): NullableFloat,
             Optional('expected_shortfall'): NullableFloat,
             Optional('expected_upside'): NullableFloat,
             Optional('volatility'): NullableFloat,
-        },
-        {
+        }, required=True),
+        Schema({
             Optional('exposure'): [Schema({'exposure': float, 'attributes': Schema([unicode])})],
             Optional('var'): RiskDecompositionComponentSchema,
             Optional('potential_upside'): RiskDecompositionComponentSchema,
             Optional('expected_shortfall'): RiskDecompositionComponentSchema,
             Optional('expected_upside'): RiskDecompositionComponentSchema,
             Optional('volatility'): RiskDecompositionComponentSchema,
-        },
+        }, required=True),
        )
 ])
 
 
 
 StressTestDecompositionSchema = Schema({
-    unicode: [Pair(Schema([unicode]), float)]
+    unicode: [ExactSequence([Schema([unicode]), float])]
 })
 
 
@@ -203,7 +175,7 @@ MultiLevelStressTestDecompositionSchema = Schema([
 
 
 LiquidityRiskDecompositionSchema = Schema({
-    unicode: [Pair(Schema([unicode]), LiquidityRiskComponentSchema)]
+    unicode: [ExactSequence([Schema([unicode]), LiquidityRiskComponentSchema])]
 })
 
 
@@ -220,19 +192,20 @@ RiskAttributionSchema = Schema({
     'local_fx_allocation_risk': float,
     'local_fx_selection_risk': float,
     'local_fx_interaction_risk': float,
-})
+}, required=True)
 
 
-RiskAttributionDecompositionSchema = Schema([{
-    'allocation_risk': float,
-    'selection_risk': float,
-    'interaction_risk': float,
-    'currency_effect': float,
-    'local_fx_allocation_risk': float,
-    'local_fx_selection_risk': float,
-    'local_fx_interaction_risk': float,
-    'attributes': [unicode],
-}])
+RiskAttributionDecompositionSchema = Schema([
+    Schema({
+        'allocation_risk': float,
+        'selection_risk': float,
+        'interaction_risk': float,
+        'currency_effect': float,
+        'local_fx_allocation_risk': float,
+        'local_fx_selection_risk': float,
+        'local_fx_interaction_risk': float,
+        'attributes': [unicode],
+    }, required=True)])
 
 
 class TestRisk(object):
