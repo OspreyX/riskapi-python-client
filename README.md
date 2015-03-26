@@ -20,6 +20,14 @@ If you want to communicate in ``msgpack`` you will also need the optional packag
 
 `$ pip install msgpack-python>=0.4`
 
+If you want to run the test suite you will also need ``nose`` and ``voluptuous``::
+
+`$ pip install nose==1.3.4 voluptuous==0.8.7`
+
+or just::
+
+`$ python setup.py test`
+
 
 Usage
 -----
@@ -74,3 +82,10 @@ Getting started
 
            >>> conn.risk(pf, [0.99])
            {u'errors': [[2, u'uncovered', u"Client code not found: u'XXX'", [u'XXX', None]]], u'results': [{u'potential_upside': 69280.4843514962, u'average_var': 60192.4303244384, u'expected_shortfall': 66361.2651884222, u'expected_upside': 78593.1966801616, u'lookback_days': 730, u'expected_return': 1075.6266813165, u'percentile': 0.99, u'frequency': 1, u'horizon': 1, u'average_potential_upside': 66453.7067345781, u'var': 60851.9174691098, u'expected_loss': 663.6126518842, u'diversification': 0.9999230482, u'volatility': 22179.0104368703}]}
+
+Tests
+-----
+
+In order to run the test suite you will need a proper ``~/riskapi.conf``, then run::
+
+`$ nosetests tests`
